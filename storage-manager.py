@@ -19,7 +19,6 @@ index_to_freq: List[str] = ["0.8Hz", "1Hz", "1.25Hz", "1.6Hz", "2Hz", "2.5Hz", "
 
 parser = argparse.ArgumentParser(description="Data storage manager for the SonoMKR Project")
 parser.add_argument("-c", "--conf", dest="conf", default="./storage.conf", help="The location of the storage configuration file")
-parser.add_argument("-d", "--dir", dest="dir", default="./data", help="The directory where data will be stored.")
 parser.add_argument("--display-conf", dest="display_conf", action="store_true", help="Set this flag to display current config and return")
 
 args = parser.parse_args()
