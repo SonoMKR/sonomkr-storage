@@ -144,6 +144,7 @@ class StorageChannel:
         asyncio.ensure_future(self.recv_and_process())
 
     def close_current_file(self):
+        self.zmq_socket.close()
         if self.last_time is not None:    
             new_time = self.last_time + timedelta(seconds=1)
             os.rename(self.current_file, self.current_file + new_time.strftime("_%H%M%S") + self.extension)
@@ -170,10 +171,13 @@ class StorageManager:
         self.zmq_context = zmq.asyncio.Context()
 
         for channel_cfg in self.conf.channels:
+            if channel_cfg.active is False:
+                break
             try:
                 channel = StorageChannel(self.zmq_context, channel_cfg)
             except Exception as err:
-                sys.stderr.write(f"[ERROR] channel config error :\n{channel_cfg}\n Error message : {err}\n")
+                sys.stderr.write(f"[ERROR] channel config error :\n{libconf.dumps(channel_cfg)}\nError message : {err}\n")
+                break
             self.channels.append(channel)
 
         self.start_listening()
@@ -181,16 +185,19 @@ class StorageManager:
         
     def start_listening(self):
         loop = asyncio.get_event_loop()
+        tasks = []
         try:
             for channel in self.channels:
-                asyncio.ensure_future(channel.recv_and_process())
+                tasks.append(asyncio.ensure_future(channel.recv_and_process()))
             loop.run_forever()
         except KeyboardInterrupt:
             pass
         finally:
             for channel in self.channels:
                 channel.close_current_file()
-            loop.close()
+            for task in tasks:
+                task.cancel()
+            loop.stop()
 
     def display_conf_and_exit(self):
         print(libconf.dumps(self.conf))
