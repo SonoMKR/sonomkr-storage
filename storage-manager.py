@@ -42,7 +42,7 @@ class StorageChannel:
 
     new_file: bool = True
     current_file: str = None
-    last_time: datetime
+    last_time: datetime = None
 
     def __init__(self, zmq_context, config):
 
@@ -140,16 +140,14 @@ class StorageChannel:
 
     @asyncio.coroutine
     def recv_and_process(self):
-        if not self.stop:
-            msg = yield from self.zmq_socket.recv_multipart() # waits for msg to be ready
-        if not self.stop:
-            self.process_msg(msg[1])
-            asyncio.ensure_future(self.recv_and_process())
+        msg = yield from self.zmq_socket.recv_multipart() # waits for msg to be ready
+        self.process_msg(msg[1])
+        asyncio.ensure_future(self.recv_and_process())
 
     def close_current_file(self):
-        self.stop = True
-        new_time = self.last_time + timedelta(seconds=1)
-        os.rename(self.current_file, self.current_file + new_time.strftime("_%H%M%S") + self.extension)
+        if self.last_time is not None:    
+            new_time = self.last_time + timedelta(seconds=1)
+            os.rename(self.current_file, self.current_file + new_time.strftime("_%H%M%S") + self.extension)
 
 
 class StorageManager:
