@@ -81,7 +81,7 @@ class StorageChannel:
         time = re.search(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3});", msg.decode("utf-8")).group(1)
         start_time = datetime.fromisoformat(time)
 
-        data_matches = re.finditer(r"(\d{1,2}):(\d{1,2}.\d);", msg.decode("utf-8"))
+        data_matches = re.finditer(r"(\d{1,2}):(-?\d{1,3}.\d{1,2});", msg.decode("utf-8"))
 
         freqs: List[int] = []
         values: List[float] = []
@@ -128,7 +128,7 @@ class StorageChannel:
             conn = sqlite3.connect(self.current_file)
             query = "INSERT INTO data VALUES("
             query += f"'{int(start_time.timestamp()*1000)}', "
-            query += ", ".join(map(lambda val: f"'{val}'", values))
+            query += ", ".join(map(lambda val: f"{val}", values))
             query += ")"
             conn.execute(query)
             conn.commit()
