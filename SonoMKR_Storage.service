@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/bin/sonomkr/storage/storage-manager.py
+ExecStart=/usr/bin/python3 /usr/local/bin/sonomkr/storage/storage-manager.py -c /etc/sonomkr/storage.conf
 
 Restart=on-failure
 
